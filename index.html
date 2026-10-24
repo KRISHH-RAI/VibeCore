@@ -292,8 +292,7 @@
         </div>
     </div>
 </div>
-
-<script>
+    <script>
     const uploadZone = document.getElementById('uploadZone');
     let dynamicDashboardPayload = null; 
 
@@ -315,146 +314,168 @@
     });
 
     function handleFiles(files) {
-        const file = files[0];
+        const file = files[0]; // Fixed file array item parsing notation pointer
         if (!file) return;
         const reader = new FileReader();
 
         if (file.name.endsWith('.json')) {
             reader.onload = function(e) {
-try { processUserData(JSON.parse(e.target.result), 'json'); }
-catch (err) { alert('Invalid structural JSON syntax detected.'); }
-};
-reader.readAsText(file);
-} else if (file.name.endsWith('.csv')) {
-reader.onload = function(e) { processUserData(e.target.result, 'csv'); };
-reader.readAsText(file);
-} else {
-alert('Unsupported format. Please feed the script a valid .json or .csv data string.');
-}
-}
-function processUserData(rawData, type) {
-let records = [];
-if (type === 'json') {
-records = Array.isArray(rawData) ? rawData : (rawData.records || []);
-} else if (type === 'csv') {
-const lines = rawData.split('\n').map(line => line.split(','));
-const headers = lines[0].map(h => h.trim().toLowerCase());
-for (let i = 1; i < lines.length; i++) {
-if (lines[i].length === headers.length) {
-let row = {};
-headers.forEach((header, idx) => { row[header] = lines[i][idx].trim(); });
-records.push(row);
-}
-}
-}
-if (records.length === 0) { alert('No valid data records matched the layout parsing criteria.'); return; }
-let uniqueItems = new Set(), categoryCounts = {}, monthlySpread = new Array(12).fill(0);
-let totalHours = 0, itemFrequency = {}, absoluteFavorite = 'Unknown';
-records.forEach(item => {
-const title = item.title || item.master_metadata_track_name || item.name || item.item || 'Unknown';
-const category = item.category || item.type || 'General Media';
-const rawDate = item.date || item.ts || item.timestamp || item.endtime;
-const duration = parseFloat(item.duration_hours || item.hours || item.ms_played / 3600000 || 0.5);
-if (title !== 'Unknown') {
-    uniqueItems.add(title);
-itemFrequency[title] = (itemFrequency[title] || 0) + 1;
-}
-categoryCounts[category] = (categoryCounts[category] || 0) + Math.ceil(duration);
-totalHours += duration;
-if (rawDate) {
-const parsedDate = new Date(rawDate);
-if (!isNaN(parsedDate.getTime())) monthlySpread[parsedDate.getMonth()] += Math.ceil(duration);
-}
-});
-let maxCount = 0;
-for (const [title, count] of Object.entries(itemFrequency)) {
-if (count > maxCount) { maxCount = count; absoluteFavorite = title; }
-}
-let topCategory = 'None', maxCatVal = 0;
-for (const [cat, val] of Object.entries(categoryCounts)) {
-if (val > maxCatVal) { maxCatVal = val; topCategory = cat; }
-}
-dynamicDashboardPayload = {
-totalHours: Math.round(totalHours),
-uniqueElements: uniqueItems.size,
-primaryCategory: topCategory,
-favoriteItem: absoluteFavorite,
-categories: categoryCounts,
-timeline: monthlySpread
-};
-populateDashboard(dynamicDashboardPayload);
-}
-function populateDashboard(data) {
-document.getElementById('uploadZone').style.display = 'none';
-document.getElementById('dashboard').style.display = 'block';
-document.getElementById('mTime').innerText = data.totalHours + ' Hrs';
-document.getElementById('mUnique').innerText = data.uniqueElements;
-document.getElementById('mCategory').innerText = data.primaryCategory;
-document.getElementById('mPeakDay').innerText = data.totalHours > 100 ? 'Active Weekends' : 'Standard Weekdays';
-document.getElementById('favItem').innerText = data.favoriteItem;
-document.getElementById('favTime').innerText = data.totalHours + ' Hours Total';
-    new Chart(document.getElementById('categoryChart').getContext('2d'), {
-type: 'doughnut',
-data: {
-labels: Object.keys(data.categories),
-datasets: [{ data: Object.values(data.categories), backgroundColor: ['#ff007f', '#00ffcc', '#3d5afe', '#ffeb3b', '#9c27b0'], borderWidth: 0 }]
-},
-options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#f0f3f8' } } } }
-});
-new Chart(document.getElementById('timelineChart').getContext('2d'), {
-type: 'bar',
-data: {
-labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-datasets: [{ label: 'Hours', data: data.timeline, backgroundColor: 'rgba(0, 255, 204, 0.6)', borderColor: '#00ffcc', borderWidth: 1 }]
-},
-options: {
-responsive: true,
-maintainAspectRatio: false,
-scales: {
-x: { ticks: { color: '#6c7a9c' }, grid: { display: false } },
-y: { ticks: { color: '#6c7a9c' }, grid: { color: 'rgba(255,255,255,0.05)' } }
-},
-plugins: { legend: { display: false } }
-}
-});
-}
-document.getElementById('btnDownloadImage').addEventListener('click', () => {
-const cardTarget = document.getElementById('shareCard');
-html2canvas(cardTarget, {
-backgroundColor: null,
-useCORS: true,
-scale: 2
-}).then(canvas => {
-const base64ImageString = canvas.toDataURL('image/png');
-const downloadTriggerLink = document.createElement('a');
-downloadTriggerLink.href = base64ImageString;
-downloadTriggerLink.download = 'Media_Wrapped_Insights_Card.png';
-document.body.appendChild(downloadTriggerLink);
-downloadTriggerLink.click();
-document.body.removeChild(downloadTriggerLink);
+                try { processUserData(JSON.parse(e.target.result), 'json'); } 
+                catch (err) { alert('Invalid structural JSON syntax detected.'); }
+            };
+            reader.readAsText(file);
+        } else if (file.name.endsWith('.csv')) {
+            reader.onload = function(e) { processUserData(e.target.result, 'csv'); };
+            reader.readAsText(file);
+        } else {
+            alert('Unsupported format. Please feed the script a valid .json or .csv data string.');
+        }
+    }
+
+    function processUserData(rawData, type) {
+        let records = [];
+        if (type === 'json') {
+            records = Array.isArray(rawData) ? rawData : (rawData.records || []);
+        } else if (type === 'csv') {
+            const lines = rawData.split('\n').map(line => line.split(','));
+            const headers = lines[0].map(h => h.trim().toLowerCase());
+            for (let i = 1; i < lines.length; i++) {
+                if (lines[i].length === headers.length) {
+                    let row = {};
+                    headers.forEach((header, idx) => { row[header] = lines[i][idx].trim(); });
+                    records.push(row);
+                }
+            }
+        }
+
+        if (records.length === 0) { alert('No valid data records matched the layout parsing criteria.'); return; }
+
+        let uniqueItems = new Set(), categoryCounts = {}, monthlySpread = new Array(12).fill(0);
+        let totalHours = 0, itemFrequency = {}, absoluteFavorite = 'Unknown';
+
+        records.forEach(item => {
+            const title = item.title || item.master_metadata_track_name || item.name || item.item || 'Unknown';
+            const category = item.category || item.type || 'General Media';
+            const rawDate = item.date || item.ts || item.timestamp || item.endtime;
+            const duration = parseFloat(item.duration_hours || item.hours || item.ms_played / 3600000 || 0.5);
+
+            if (title !== 'Unknown') {
+                uniqueItems.add(title);
+                itemFrequency[title] = (itemFrequency[title] || 0) + 1;
+            }
+            categoryCounts[category] = (categoryCounts[category] || 0) + Math.ceil(duration);
+            totalHours += duration;
+
+            if (rawDate) {
+                const parsedDate = new Date(rawDate);
+                if (!isNaN(parsedDate.getTime())) monthlySpread[parsedDate.getMonth()] += Math.ceil(duration);
+            }
+        });
+
+        let maxCount = 0;
+        for (const [title, count] of Object.entries(itemFrequency)) {
+            if (count > maxCount) { maxCount = count; absoluteFavorite = title; }
+        }
+
+        let topCategory = 'None', maxCatVal = 0;
+        for (const [cat, val] of Object.entries(categoryCounts)) {
+            if (val > maxCatVal) { maxCatVal = val; topCategory = cat; }
+        }
+
+        dynamicDashboardPayload = {
+            totalHours: Math.round(totalHours),
+            uniqueElements: uniqueItems.size,
+            primaryCategory: topCategory,
+            favoriteItem: absoluteFavorite,
+            categories: categoryCounts,
+            timeline: monthlySpread
+        };
+
+        populateDashboard(dynamicDashboardPayload);
+    }
+
+    function populateDashboard(data) {
+        document.getElementById('uploadZone').style.display = 'none';
+        document.getElementById('dashboard').style.display = 'block';
+
+        document.getElementById('mTime').innerText = data.totalHours + ' Hrs';
+        document.getElementById('mUnique').innerText = data.uniqueElements;
+        document.getElementById('mCategory').innerText = data.primaryCategory;
+        document.getElementById('mPeakDay').innerText = data.totalHours > 100 ? 'Active Weekends' : 'Standard Weekdays';
+        document.getElementById('favItem').innerText = data.favoriteItem;
+        document.getElementById('favTime').innerText = data.totalHours + ' Hours Total';
+
+        new Chart(document.getElementById('categoryChart').getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(data.categories),
+                datasets: [{ data: Object.values(data.categories), backgroundColor: ['#ff007f', '#00ffcc', '#3d5afe', '#ffeb3b', '#9c27b0'], borderWidth: 0 }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#f0f3f8' } } } }
+        });
+
+        new Chart(document.getElementById('timelineChart').getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                datasets: [{ label: 'Hours', data: data.timeline, backgroundColor: 'rgba(0, 255, 204, 0.6)', borderColor: '#00ffcc', borderWidth: 1 }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: { ticks: { color: '#6c7a9c' }, grid: { display: false } },
+                    y: { ticks: { color: '#6c7a9c' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+                },
+                plugins: { legend: { display: false } }
+            }
+        });
+    }
+
+    document.getElementById('btnDownloadImage').addEventListener('click', () => {
+        const cardTarget = document.getElementById('shareCard');
+        html2canvas(cardTarget, {
+            backgroundColor: null,
+            useCORS: true,
+            scale: 2 
+        }).then(canvas => {
+            const base64ImageString = canvas.toDataURL('image/png');
+            const downloadTriggerLink = document.createElement('a');
+            downloadTriggerLink.href = base64ImageString;
+            downloadTriggerLink.download = 'Media_Wrapped_Insights_Card.png';
+            document.body.appendChild(downloadTriggerLink);
+            downloadTriggerLink.click();
+            document.body.removeChild(downloadTriggerLink);
+        });
     });
-});
-document.getElementById('btnDownloadReport').addEventListener('click', () => {
-if (!dynamicDashboardPayload) return;
-let markdownReportContent = # MEDIA CONSUMPTION WRAPPED REPORT\n;
-markdownReportContent += Generated on: ${new Date().toLocaleDateString()}\n;
-markdownReportContent += ==============================================\n\n;
-markdownReportContent += ## METRIC HIGHLIGHTS\n;
-markdownReportContent += - Total Cumulative Investment Time: ${dynamicDashboardPayload.totalHours} Hours\n;
-markdownReportContent += - Unique Media Elements Sampled: ${dynamicDashboardPayload.uniqueElements}\n;
-markdownReportContent += - Dominant Structural Category Tag: ${dynamicDashboardPayload.primaryCategory}\n;
-markdownReportContent += - Core Favorite Anchor Title: ${dynamicDashboardPayload.favoriteItem}\n\n;
-markdownReportContent += ## SECTOR CATEGORY TIME DISTRIBUTION\n;
-for (const [key, val] of Object.entries(dynamicDashboardPayload.categories)) {
-markdownReportContent += - **${key}**: ${val} Hours\n;
-}
-const dataBlobFile = new Blob([markdownReportContent], { type: 'text/markdown;charset=utf-8;' });
-const dataBlobUrl = URL.createObjectURL(dataBlobFile);
-const downloadTriggerLink = document.createElement('a');
-downloadTriggerLink.href = dataBlobUrl;
-downloadTriggerLink.download = 'Media_Wrapped_Full_Report.md';
-document.body.appendChild(downloadTriggerLink);
-downloadTriggerLink.click();
-document.body.removeChild(downloadTriggerLink);
-URL.revokeObjectURL(dataBlobUrl);
-});
+
+    document.getElementById('btnDownloadReport').addEventListener('click', () => {
+        if (!dynamicDashboardPayload) return;
+
+        let markdownReportContent = `# MEDIA CONSUMPTION WRAPPED REPORT\n`;
+        markdownReportContent += `Generated on: ${new Date().toLocaleDateString()}\n`;
+        markdownReportContent += `==============================================\n\n`;
+        markdownReportContent += `## METRIC HIGHLIGHTS\n`;
+        markdownReportContent += `- Total Cumulative Investment Time: ${dynamicDashboardPayload.totalHours} Hours\n`;
+        markdownReportContent += `- Unique Media Elements Sampled: ${dynamicDashboardPayload.uniqueElements}\n`;
+        markdownReportContent += `- Dominant Structural Category Tag: ${dynamicDashboardPayload.primaryCategory}\n`;
+        markdownReportContent += `- Core Favorite Anchor Title: ${dynamicDashboardPayload.favoriteItem}\n\n`;
+        markdownReportContent += `## SECTOR CATEGORY TIME DISTRIBUTION\n`;
+        
+        for (const [key, val] of Object.entries(dynamicDashboardPayload.categories)) {
+            markdownReportContent += `- **${key}**: ${val} Hours\n`;
+        }
+
+        const dataBlobFile = new Blob([markdownReportContent], { type: 'text/markdown;charset=utf-8;' });
+        const dataBlobUrl = URL.createObjectURL(dataBlobFile);
+        const downloadTriggerLink = document.createElement('a');
+        downloadTriggerLink.href = dataBlobUrl;
+        downloadTriggerLink.download = 'Media_Wrapped_Full_Report.md';
+        document.body.appendChild(downloadTriggerLink);
+        downloadTriggerLink.click();
+        document.body.removeChild(downloadTriggerLink);
+        URL.revokeObjectURL(dataBlobUrl);
+    });
+</script>
+
+
