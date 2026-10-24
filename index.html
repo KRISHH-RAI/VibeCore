@@ -320,7 +320,7 @@
         const reader = new FileReader();
 
         if (file.name.endsWith('.json')) {
-reader.onload = function(e) {
+            reader.onload = function(e) {
 try { processUserData(JSON.parse(e.target.result), 'json'); }
 catch (err) { alert('Invalid structural JSON syntax detected.'); }
 };
@@ -356,7 +356,7 @@ const category = item.category || item.type || 'General Media';
 const rawDate = item.date || item.ts || item.timestamp || item.endtime;
 const duration = parseFloat(item.duration_hours || item.hours || item.ms_played / 3600000 || 0.5);
 if (title !== 'Unknown') {
-uniqueItems.add(title);
+    uniqueItems.add(title);
 itemFrequency[title] = (itemFrequency[title] || 0) + 1;
 }
 categoryCounts[category] = (categoryCounts[category] || 0) + Math.ceil(duration);
@@ -393,7 +393,7 @@ document.getElementById('mCategory').innerText = data.primaryCategory;
 document.getElementById('mPeakDay').innerText = data.totalHours > 100 ? 'Active Weekends' : 'Standard Weekdays';
 document.getElementById('favItem').innerText = data.favoriteItem;
 document.getElementById('favTime').innerText = data.totalHours + ' Hours Total';
-new Chart(document.getElementById('categoryChart').getContext('2d'), {
+    new Chart(document.getElementById('categoryChart').getContext('2d'), {
 type: 'doughnut',
 data: {
 labels: Object.keys(data.categories),
@@ -432,7 +432,7 @@ downloadTriggerLink.download = 'Media_Wrapped_Insights_Card.png';
 document.body.appendChild(downloadTriggerLink);
 downloadTriggerLink.click();
 document.body.removeChild(downloadTriggerLink);
-});
+    });
 });
 document.getElementById('btnDownloadReport').addEventListener('click', () => {
 if (!dynamicDashboardPayload) return;
@@ -458,6 +458,3 @@ downloadTriggerLink.click();
 document.body.removeChild(downloadTriggerLink);
 URL.revokeObjectURL(dataBlobUrl);
 });
-</script>
-</body>
-</html>
