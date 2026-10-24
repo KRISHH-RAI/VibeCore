@@ -314,7 +314,8 @@
     });
 
     function handleFiles(files) {
-        const file = files[0]; // Fixed file array item parsing notation pointer
+        // Correctly targeted the first index array element of the uploaded files list
+        const file = files[0]; 
         if (!file) return;
         const reader = new FileReader();
 
@@ -338,7 +339,7 @@
             records = Array.isArray(rawData) ? rawData : (rawData.records || []);
         } else if (type === 'csv') {
             const lines = rawData.split('\n').map(line => line.split(','));
-            const headers = lines[0].map(h => h.trim().toLowerCase());
+            const headers = lines.map(h => h.trim().toLowerCase());
             for (let i = 1; i < lines.length; i++) {
                 if (lines[i].length === headers.length) {
                     let row = {};
@@ -478,4 +479,4 @@
     });
 </script>
 
-
+    
