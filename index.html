@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Media Wrapped // Dashboard & Export Engine</title>
+    <script src="https://jsdelivr.net"></script>
+    <script src="https://jsdelivr.net"></script>
+    <style>
+        :root {
+            --bg-color: #0d0e15;
+            --card-bg: #161925;
+            --accent-neon: #00ffcc;
+            --accent-pink: #ff007f;
+            --text-main: #f0f3f8;
+            --text-muted: #6c7a9c;
+            --border-glow: rgba(0, 255, 204, 0.2);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1000px;
+            width: 100%;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--text-main);
+            margin-bottom: 10px;
+        }
+
+        header h1 span {
+            color: var(--accent-neon);
+            text-shadow: 0 0 10px rgba(0, 255, 204, 0.5);
+        }
+
+        header p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        .upload-zone {
+            background: var(--card-bg);
+            border: 2px dashed var(--accent-neon);
+            box-shadow: 0 0 15px var(--border-glow);
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 40px;
+        }
+
+        .upload-zone:hover {
+            box-shadow: 0 0 25px rgba(0, 255, 204, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .upload-zone p {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+        }
+
+        .dashboard {
+            display: none;
+            animation: fadeIn 0.6s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .grid-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .metric-card {
+            background: var(--card-bg);
+            border-left: 4px solid var(--accent-pink);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        .metric-card h3 {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+
+        .metric-card .value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--accent-neon);
+        }
+
+        .grid-charts {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .chart-card {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .chart-card h3 {
+            align-self: flex-start;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+            color: var(--text-main);
+            border-bottom: 2px solid var(--accent-pink);
+            padding-bottom: 5px;
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 300px;
+        }
+
+        .wrapped-card-share {
+            background: linear-gradient(135deg, #1f1a3a 0%, #0d0e15 100%);
+            border: 2px solid var(--accent-neon);
+            border-radius: 16px;
+            padding: 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 30px rgba(0, 255, 204, 0.15);
+            margin-bottom: 30px;
+        }
+
+        .wrapped-card-share h2 {
+            font-size: 2.2rem;
+            color: var(--accent-neon);
+            margin-bottom: 5px;
+        }
+
+        .wrapped-card-share h4 {
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 25px;
+        }
+
+        .highlight-box {
+            font-size: 1.3rem;
+            margin: 15px 0;
+            color: var(--text-main);
+        }
+
+        .highlight-box strong {
+            color: var(--accent-pink);
+        }
+
+        .action-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .btn-export {
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-image {
+            background: linear-gradient(45deg, var(--accent-pink), #b30059);
+            box-shadow: 0 4px 15px rgba(255, 0, 127, 0.3);
+        }
+
+        .btn-file {
+            background: linear-gradient(45deg, #00c8ff, #007bb3);
+            box-shadow: 0 4px 15px rgba(0, 200, 255, 0.3);
+        }
+
+        .btn-export:hover {
+            transform: scale(1.03);
+            box-shadow: 0 6px 20px rgba(255,255,255,0.15);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Media <span>Wrapped</span></h1>
+        <p>Your digital consumption timeline, condensed overnight.</p>
+    </header>
+
+    <!-- Interactive Drag/Click Upload Zone -->
+    <div class="upload-zone" id="uploadZone">
+        <p>Drop your exported JSON or CSV history file here</p>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 10px;">Click anywhere inside this dashboard box to browse local storage files</p>
+    </div>
+
+    <!-- Active Analytics Panel -->
+    <div class="dashboard" id="dashboard">
+        <div class="grid-metrics">
+            <div class="metric-card">
+                <h3>Total Time Logged</h3>
+                <div class="value" id="mTime">--</div>
+            </div>
+            <div class="metric-card">
+                <h3>Unique Items</h3>
+                <div class="value" id="mUnique">--</div>
+            </div>
+            <div class="metric-card">
+                <h3>Top Category</h3>
+                <div class="value" id="mCategory">--</div>
+            </div>
+            <div class="metric-card">
+                <h3>Peak Focus Window</h3>
+                <div class="value" id="mPeakDay">--</div>
+            </div>
+        </div>
+
+        <div class="grid-charts">
+            <div class="chart-card">
+                <h3>Top Consumption Categories</h3>
+                <div class="chart-container">
+                    <canvas id="categoryChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <h3>Monthly Activity Spread</h3>
+                <div class="chart-container">
+                    <canvas id="timelineChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Visual Shareable Card Context Target -->
+        <div class="wrapped-card-share" id="shareCard">
+            <h2>YOUR OVERALL SUMMARY</h2>
+            <h4>// Personal Insights Card</h4>
+            <div class="highlight-box">👑 Absolute Favorite: <strong id="favItem">--</strong></div>
+            <div class="highlight-box">⚡ Total Time Investment: <strong id="favTime">--</strong></div>
+            <div class="highlight-box">🎵 Mapped Sub-Genre Focus: <strong id="favGenre">Dynamic Core Media Tracker</strong></div>
+        </div>
+
+        <!-- Download Command Hub -->
+        <div class="action-container">
+            <button class="btn-export btn-image" id="btnDownloadImage">Save Share Card (PNG)</button>
+            <button class="btn-export btn-file" id="btnDownloadReport">Export Full Report (MD)</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const uploadZone = document.getElementById('uploadZone');
+    let dynamicDashboardPayload = null; 
+
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = '.json, .csv';
+    fileInput.style.display = 'none';
+    document.body.appendChild(fileInput);
+
+    uploadZone.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
+
+    uploadZone.addEventListener('dragover', (e) => { e.preventDefault(); uploadZone.style.boxShadow = '0 0 25px rgba(0, 255, 204, 0.6)'; });
+    uploadZone.addEventListener('dragleave', () => { uploadZone.style.boxShadow = '0 0 15px var(--border-glow)'; });
+    uploadZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadZone.style.boxShadow = '0 0 15px var(--border-glow)';
+        if (e.dataTransfer.files.length > 0) handleFiles(e.dataTransfer.files);
+    });
+
+    function handleFiles(files) {
+        const file = files[0];
+        if (!file) return;
+        const reader = new FileReader();
+
+        if (file.name.endsWith('.json')) {
+reader.onload = function(e) {
+try { processUserData(JSON.parse(e.target.result), 'json'); }
+catch (err) { alert('Invalid structural JSON syntax detected.'); }
+};
+reader.readAsText(file);
+} else if (file.name.endsWith('.csv')) {
+reader.onload = function(e) { processUserData(e.target.result, 'csv'); };
+reader.readAsText(file);
+} else {
+alert('Unsupported format. Please feed the script a valid .json or .csv data string.');
+}
+}
+function processUserData(rawData, type) {
+let records = [];
+if (type === 'json') {
+records = Array.isArray(rawData) ? rawData : (rawData.records || []);
+} else if (type === 'csv') {
+const lines = rawData.split('\n').map(line => line.split(','));
+const headers = lines[0].map(h => h.trim().toLowerCase());
+for (let i = 1; i < lines.length; i++) {
+if (lines[i].length === headers.length) {
+let row = {};
+headers.forEach((header, idx) => { row[header] = lines[i][idx].trim(); });
+records.push(row);
+}
+}
+}
+if (records.length === 0) { alert('No valid data records matched the layout parsing criteria.'); return; }
+let uniqueItems = new Set(), categoryCounts = {}, monthlySpread = new Array(12).fill(0);
+let totalHours = 0, itemFrequency = {}, absoluteFavorite = 'Unknown';
+records.forEach(item => {
+const title = item.title || item.master_metadata_track_name || item.name || item.item || 'Unknown';
+const category = item.category || item.type || 'General Media';
+const rawDate = item.date || item.ts || item.timestamp || item.endtime;
+const duration = parseFloat(item.duration_hours || item.hours || item.ms_played / 3600000 || 0.5);
+if (title !== 'Unknown') {
+uniqueItems.add(title);
+itemFrequency[title] = (itemFrequency[title] || 0) + 1;
+}
+categoryCounts[category] = (categoryCounts[category] || 0) + Math.ceil(duration);
+totalHours += duration;
+if (rawDate) {
+const parsedDate = new Date(rawDate);
+if (!isNaN(parsedDate.getTime())) monthlySpread[parsedDate.getMonth()] += Math.ceil(duration);
+}
+});
+let maxCount = 0;
+for (const [title, count] of Object.entries(itemFrequency)) {
+if (count > maxCount) { maxCount = count; absoluteFavorite = title; }
+}
+let topCategory = 'None', maxCatVal = 0;
+for (const [cat, val] of Object.entries(categoryCounts)) {
+if (val > maxCatVal) { maxCatVal = val; topCategory = cat; }
+}
+dynamicDashboardPayload = {
+totalHours: Math.round(totalHours),
+uniqueElements: uniqueItems.size,
+primaryCategory: topCategory,
+favoriteItem: absoluteFavorite,
+categories: categoryCounts,
+timeline: monthlySpread
+};
+populateDashboard(dynamicDashboardPayload);
+}
+function populateDashboard(data) {
+document.getElementById('uploadZone').style.display = 'none';
+document.getElementById('dashboard').style.display = 'block';
+document.getElementById('mTime').innerText = data.totalHours + ' Hrs';
+document.getElementById('mUnique').innerText = data.uniqueElements;
+document.getElementById('mCategory').innerText = data.primaryCategory;
+document.getElementById('mPeakDay').innerText = data.totalHours > 100 ? 'Active Weekends' : 'Standard Weekdays';
+document.getElementById('favItem').innerText = data.favoriteItem;
+document.getElementById('favTime').innerText = data.totalHours + ' Hours Total';
+new Chart(document.getElementById('categoryChart').getContext('2d'), {
+type: 'doughnut',
+data: {
+labels: Object.keys(data.categories),
+datasets: [{ data: Object.values(data.categories), backgroundColor: ['#ff007f', '#00ffcc', '#3d5afe', '#ffeb3b', '#9c27b0'], borderWidth: 0 }]
+},
+options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#f0f3f8' } } } }
+});
+new Chart(document.getElementById('timelineChart').getContext('2d'), {
+type: 'bar',
+data: {
+labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+datasets: [{ label: 'Hours', data: data.timeline, backgroundColor: 'rgba(0, 255, 204, 0.6)', borderColor: '#00ffcc', borderWidth: 1 }]
+},
+options: {
+responsive: true,
+maintainAspectRatio: false,
+scales: {
+x: { ticks: { color: '#6c7a9c' }, grid: { display: false } },
+y: { ticks: { color: '#6c7a9c' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+},
+plugins: { legend: { display: false } }
+}
+});
+}
+document.getElementById('btnDownloadImage').addEventListener('click', () => {
+const cardTarget = document.getElementById('shareCard');
+html2canvas(cardTarget, {
+backgroundColor: null,
+useCORS: true,
+scale: 2
+}).then(canvas => {
+const base64ImageString = canvas.toDataURL('image/png');
+const downloadTriggerLink = document.createElement('a');
+downloadTriggerLink.href = base64ImageString;
+downloadTriggerLink.download = 'Media_Wrapped_Insights_Card.png';
+document.body.appendChild(downloadTriggerLink);
+downloadTriggerLink.click();
+document.body.removeChild(downloadTriggerLink);
+});
+});
+document.getElementById('btnDownloadReport').addEventListener('click', () => {
+if (!dynamicDashboardPayload) return;
+let markdownReportContent = # MEDIA CONSUMPTION WRAPPED REPORT\n;
+markdownReportContent += Generated on: ${new Date().toLocaleDateString()}\n;
+markdownReportContent += ==============================================\n\n;
+markdownReportContent += ## METRIC HIGHLIGHTS\n;
+markdownReportContent += - Total Cumulative Investment Time: ${dynamicDashboardPayload.totalHours} Hours\n;
+markdownReportContent += - Unique Media Elements Sampled: ${dynamicDashboardPayload.uniqueElements}\n;
+markdownReportContent += - Dominant Structural Category Tag: ${dynamicDashboardPayload.primaryCategory}\n;
+markdownReportContent += - Core Favorite Anchor Title: ${dynamicDashboardPayload.favoriteItem}\n\n;
+markdownReportContent += ## SECTOR CATEGORY TIME DISTRIBUTION\n;
+for (const [key, val] of Object.entries(dynamicDashboardPayload.categories)) {
+markdownReportContent += - **${key}**: ${val} Hours\n;
+}
+const dataBlobFile = new Blob([markdownReportContent], { type: 'text/markdown;charset=utf-8;' });
+const dataBlobUrl = URL.createObjectURL(dataBlobFile);
+const downloadTriggerLink = document.createElement('a');
+downloadTriggerLink.href = dataBlobUrl;
+downloadTriggerLink.download = 'Media_Wrapped_Full_Report.md';
+document.body.appendChild(downloadTriggerLink);
+downloadTriggerLink.click();
+document.body.removeChild(downloadTriggerLink);
+URL.revokeObjectURL(dataBlobUrl);
+});
+</script>
+</body>
+</html>
